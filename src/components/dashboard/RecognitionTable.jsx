@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { MdFaceRetouchingNatural, MdSearch } from 'react-icons/md';
-import { recognizedPersons } from '../../data/mockData';
+import { useApi } from '../../hooks/useApi';
+import { recognitionAPI } from '../../api/services';
+import { recognizedPersons as fallback } from '../../data/mockData';
 
 const statusConfig = {
   served:    { label: 'Food Distributed', dotColor: '#10b981', bg: 'rgba(16,185,129,0.1)',  color: 'var(--accent-green)'  },
@@ -20,6 +22,12 @@ const filterLabels = { all: 'All', served: 'Served', duplicate: 'Duplicate', unk
 export default function RecognitionTable() {
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
+
+  const { data, loading } = useApi(
+    () => recognitionAPI.getLatest({ limit: 20 }),
+    { fallback: { records: fallback }, pollMs: 15000 }
+  );
+  const recognizedPersons = data?.records ?? fallback;
 
   const filtered = recognizedPersons.filter(p => {
     const matchF = filter === 'all' || p.status === filter;

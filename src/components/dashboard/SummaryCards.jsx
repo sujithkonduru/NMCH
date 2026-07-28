@@ -5,7 +5,9 @@ import {
 } from 'react-icons/md';
 import { HiTrendingUp, HiTrendingDown } from 'react-icons/hi';
 import { LineChart, Line, ResponsiveContainer } from 'recharts';
-import { summaryCards } from '../../data/mockData';
+import { useApi } from '../../hooks/useApi';
+import { dashboardAPI } from '../../api/services';
+import { summaryCards as fallback } from '../../data/mockData';
 
 const icons = {
   persons:   MdPeople,
@@ -39,13 +41,17 @@ const sparks = [
 ];
 
 export default function SummaryCards() {
+  const { data, loading } = useApi(dashboardAPI.getSummary, {
+    fallback: { cards: fallback },
+    pollMs: 30000,
+  });
+  const summaryCards = data?.cards ?? fallback;
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(2, 1fr)',
-      gap: 16,
-    }} className="summary-grid-responsive">
-      {summaryCards.map((card, i) => {
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 16 }} className="summary-grid-responsive">
+      {loading && summaryCards.map((_, i) => (
+        <div key={i} style={{ height: 148, borderRadius: 16, background: 'var(--card-bg)', border: '1px solid var(--border)' }} className="skeleton" />
+      ))}
+      {!loading && summaryCards.map((card, i) => {
         const Icon = icons[card.icon];
         const c    = colorMap[card.color];
         const isPos     = card.change > 0;

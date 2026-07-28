@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { authAPI } from '../api/services';
 
 const AuthContext = createContext(null);
 
@@ -8,22 +9,20 @@ export const AuthProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
-  const login = (email, password, remember) => {
-    // Mock login
-    const userData = {
-      name: 'Admin User',
-      email,
-      role: email.includes('operator') ? 'Operator' : 'Admin',
-      avatar: null,
-    };
+  const login = async (email, password, remember) => {
+    const res = await authAPI.login(email, password);
+    const { token, user: userData } = res.data;
+    localStorage.setItem('canteen_token', token);
     setUser(userData);
     if (remember) localStorage.setItem('canteen_user', JSON.stringify(userData));
-    return true;
+    return { ok: true, user: userData };
   };
 
-  const logout = () => {
-    setUser(null);
+  const logout = async () => {
+    try { await authAPI.logout(); } catch (_) { /* ignore */ }
+    localStorage.removeItem('canteen_token');
     localStorage.removeItem('canteen_user');
+    setUser(null);
   };
 
   return (

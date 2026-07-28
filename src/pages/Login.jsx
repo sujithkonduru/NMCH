@@ -18,10 +18,14 @@ export default function Login() {
     setError('');
     if (!form.email || !form.password) { setError('Please fill in all fields.'); return; }
     setLoading(true);
-    await new Promise(r => setTimeout(r, 1200));
-    const ok = login(form.email, form.password, form.remember);
-    if (ok) navigate('/dashboard');
-    else { setError('Invalid credentials.'); setLoading(false); }
+    try {
+      await login(form.email, form.password, form.remember);
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Invalid credentials.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

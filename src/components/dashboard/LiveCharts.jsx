@@ -4,7 +4,13 @@ import {
   LineChart, Line, XAxis, YAxis, CartesianGrid,
   BarChart, Bar, AreaChart, Area
 } from 'recharts';
-import { mealPieData, dailyTrendData, hourlyData, weeklyData, consumptionTrendData } from '../../data/mockData';
+import { useApi } from '../../hooks/useApi';
+import { dashboardAPI } from '../../api/services';
+import {
+  mealPieData as fallbackPie, dailyTrendData as fallbackDaily,
+  hourlyData as fallbackHourly, weeklyData as fallbackWeekly,
+  consumptionTrendData as fallbackConsumption
+} from '../../data/mockData';
 
 const CustomTooltip = ({ active, payload, label }) => {
   if (!active || !payload?.length) return null;
@@ -51,6 +57,16 @@ const tickStyle = { fontSize: 11, fill: 'var(--text-muted)' };
 const gridStroke = 'var(--border)';
 
 export default function LiveCharts() {
+  const { data: chartData }   = useApi(dashboardAPI.getChartData,   { fallback: { mealPie: fallbackPie, dailyTrend: fallbackDaily } });
+  const { data: hourlyRes }   = useApi(dashboardAPI.getHourly,      { fallback: { hourly: fallbackHourly } });
+  const { data: weeklyRes }   = useApi(dashboardAPI.getWeekly,      { fallback: { weekly: fallbackWeekly } });
+  const { data: consumptRes } = useApi(dashboardAPI.getConsumption, { fallback: { consumption: fallbackConsumption } });
+
+  const mealPieData      = chartData?.mealPie       ?? fallbackPie;
+  const dailyTrendData   = chartData?.dailyTrend    ?? fallbackDaily;
+  const hourlyData       = hourlyRes?.hourly        ?? fallbackHourly;
+  const weeklyData       = weeklyRes?.weekly        ?? fallbackWeekly;
+  const consumptionTrendData = consumptRes?.consumption ?? fallbackConsumption;
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
 
